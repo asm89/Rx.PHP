@@ -55,7 +55,9 @@ class ScanOperator implements OperatorInterface
                 $observer->onError($e);
             },
             function () use ($observer) {
-                !$this->hasValue && $this->hasSeed && $observer->onNext($this->seed);
+                if (!$this->hasValue && $this->hasSeed) {
+                    $observer->onNext($this->seed);
+                }
                 $observer->onCompleted();
             }
         ));
