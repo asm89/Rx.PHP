@@ -11,9 +11,9 @@ use Rx\ObserverInterface;
 
 class Subject extends BaseObservable implements ObserverInterface, DisposableInterface
 {
-    private $exception;
-    private $isDisposed = false;
-    private $isStopped  = false;
+    protected $exception;
+    protected $isDisposed = false;
+    protected $isStopped  = false;
     protected $observers  = array();
 
     public function subscribe(ObserverInterface $observer, $scheduler = null)
@@ -47,7 +47,7 @@ class Subject extends BaseObservable implements ObserverInterface, DisposableInt
         return count($this->observers) > 0;
     }
 
-    private function assertNotDisposed()
+    protected function assertNotDisposed()
     {
         if ($this->isDisposed) {
             throw new RuntimeException('Subject is disposed.');
