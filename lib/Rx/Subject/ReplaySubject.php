@@ -27,6 +27,8 @@ class ReplaySubject extends Subject
     /**
      * ReplaySubject constructor.
      * @param int $bufferSize
+     * @param int $windowSize
+     * @param SchedulerInterface $scheduler
      */
     public function __construct($bufferSize = null, $windowSize = null, $scheduler = null)
     {
@@ -57,6 +59,7 @@ class ReplaySubject extends Subject
             $scheduler = $this->scheduler;
         }
         $so = new ScheduledObserver($scheduler, $observer);
+
         $subscription = $this->createRemovableDisposable($this, $so);
 
         $this->trim();
@@ -69,8 +72,10 @@ class ReplaySubject extends Subject
 
         if ($this->hasError) {
             $so->onError($this->exception);
-        } else if ($this->isStopped) {
-            $so->onCompleted();
+        } else {
+            if ($this->isStopped) {
+                $so->onCompleted();
+            }
         }
 
         $so->ensureActive();
@@ -105,7 +110,7 @@ class ReplaySubject extends Subject
             return;
         }
 
-        $observers = $this->observers;
+        $observers       = $this->observers;
         $this->isStopped = true;
 
         foreach ($observers as $observer) {
@@ -113,7 +118,7 @@ class ReplaySubject extends Subject
             $observer->ensureActive();
         }
 
-        $this->observers = array();
+        $this->observers = [];
     }
 
     public function onError(Exception $exception)
@@ -124,10 +129,10 @@ class ReplaySubject extends Subject
             return;
         }
 
-        $observers = $this->observers;
+        $observers       = $this->observers;
         $this->isStopped = true;
         $this->exception = $exception;
-        $this->hasError = true;
+        $this->hasError  = true;
 
         $this->trim();
 
@@ -136,11 +141,12 @@ class ReplaySubject extends Subject
             $observer->ensureActive();
         }
 
-        $this->observers = array();
+        $this->observers = [];
     }
 
 
-    private function createRemovableDisposable($subject, $observer) {
+    private function createRemovableDisposable($subject, $observer)
+    {
         return new CallbackDisposable(function () use ($observer, $subject) {
             $observer->dispose();
             if (!$subject->isDisposed()) {
@@ -149,7 +155,8 @@ class ReplaySubject extends Subject
         });
     }
 
-    private function trim() {
+    private function trim()
+    {
         if (count($this->queue) > $this->bufferSize) {
             array_shift($this->queue);
         }

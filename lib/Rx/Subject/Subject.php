@@ -20,7 +20,7 @@ class Subject extends BaseObservable implements ObserverInterface, DisposableInt
     {
         $this->assertNotDisposed();
 
-        if ( ! $this->isStopped) {
+        if (!$this->isStopped) {
             $this->observers[] = $observer;
 
             return new InnerSubscriptionDisposable($this, $observer);

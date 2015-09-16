@@ -27,7 +27,7 @@ abstract class FunctionalTestCase extends TestCase
         }
 
         for ($i = 0, $count = count($expected); $i < $count; $i++) {
-            if (! $expected[$i]->equals($recorded[$i])) {
+            if (!$expected[$i]->equals($recorded[$i])) {
                 $this->fail($expected[$i] . ' does not equal ' . $recorded[$i]);
             }
         }
@@ -49,7 +49,7 @@ abstract class FunctionalTestCase extends TestCase
 
         list($actual) = $observable->getSubscriptions();
 
-        if ( ! $expected->equals($actual)) {
+        if (!$expected->equals($actual)) {
             $this->fail(sprintf("Expected subscription '%s' does not match actual subscription '%s'", $expected, $actual));
         }
 
@@ -63,7 +63,7 @@ abstract class FunctionalTestCase extends TestCase
         }
 
         for ($i = 0, $count = count($expected); $i < $count; $i++) {
-            if (! $expected[$i]->equals($recorded[$i])) {
+            if (!$expected[$i]->equals($recorded[$i])) {
                 $this->fail($expected[$i] . ' does not equal ' . $recorded[$i]);
             }
         }
@@ -88,9 +88,9 @@ abstract class FunctionalTestCase extends TestCase
         try {
             $callback();
         } catch (\Exception $e) {
-            $class = get_class($e);
-            $message = $e->getMessage();
-            $code = $e->getCode();
+            $class        = get_class($e);
+            $message      = $e->getMessage();
+            $code         = $e->getCode();
             $errorMessage = 'Failed asserting the class of exception';
             if ($message && $code) {
                 $errorMessage .= sprintf(' (message was %s, code was %d)', $message, $code);
@@ -105,6 +105,7 @@ abstract class FunctionalTestCase extends TestCase
             if ($expectedMessage !== null) {
                 $this->assertContains($expectedMessage, $message, sprintf('Failed asserting the message of thrown %s.', $class));
             }
+
             return;
         }
         $errorMessage = 'Failed asserting that exception';

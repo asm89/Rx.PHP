@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: matt
- * Date: 9/15/15
- * Time: 4:34 PM
- */
 
 namespace Rx\Functional\Subject;
 
@@ -16,18 +10,18 @@ class ReplaySubjectTest extends FunctionalTestCase
     function testInfinite()
     {
         $xs = $this->createHotObservable([
-            onNext(70, 1),
-            onNext(110, 2),
-            onNext(220, 3),
-            onNext(270, 4),
-            onNext(340, 5),
-            onNext(410, 6),
-            onNext(520, 7),
-            onNext(630, 8),
-            onNext(710, 9),
-            onNext(870, 10),
-            onNext(940, 11),
-            onNext(1020, 12)
+          onNext(70, 1),
+          onNext(110, 2),
+          onNext(220, 3),
+          onNext(270, 4),
+          onNext(340, 5),
+          onNext(410, 6),
+          onNext(520, 7),
+          onNext(630, 8),
+          onNext(710, 9),
+          onNext(870, 10),
+          onNext(940, 11),
+          onNext(1020, 12)
         ]);
 
 
@@ -71,52 +65,52 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->scheduler->start();
 
         $this->assertMessages(
-            [
-                onNext(301, 3),
-                onNext(302, 4),
-                onNext(341, 5),
-                onNext(411, 6),
-                onNext(521, 7)
-            ],
-            $results1->getMessages()
+          [
+            onNext(301, 3),
+            onNext(302, 4),
+            onNext(341, 5),
+            onNext(411, 6),
+            onNext(521, 7)
+          ],
+          $results1->getMessages()
         );
 
         $this->assertMessages(
-            [
-                onNext(401, 5),
-                onNext(411, 6),
-                onNext(521, 7),
-                onNext(631, 8)
-            ],
-            $results2->getMessages()
+          [
+            onNext(401, 5),
+            onNext(411, 6),
+            onNext(521, 7),
+            onNext(631, 8)
+          ],
+          $results2->getMessages()
         );
 
         $this->assertMessages(
-            [
-                onNext(901, 10),
-                onNext(941, 11)
-            ],
-            $results3->getMessages()
+          [
+            onNext(901, 10),
+            onNext(941, 11)
+          ],
+          $results3->getMessages()
         );
     }
 
     public function testInfinite2()
     {
         $xs = $this->createHotObservable([
-            onNext(70, 1),
-            onNext(110, 2),
-            onNext(220, 3),
-            onNext(270, 4),
-            onNext(280, -1),
-            onNext(290, -2),
-            onNext(340, 5),
-            onNext(410, 6),
-            onNext(520, 7),
-            onNext(630, 8),
-            onNext(710, 9),
-            onNext(870, 10),
-            onNext(940, 11),
-            onNext(1020, 12)
+          onNext(70, 1),
+          onNext(110, 2),
+          onNext(220, 3),
+          onNext(270, 4),
+          onNext(280, -1),
+          onNext(290, -2),
+          onNext(340, 5),
+          onNext(410, 6),
+          onNext(520, 7),
+          onNext(630, 8),
+          onNext(710, 9),
+          onNext(870, 10),
+          onNext(940, 11),
+          onNext(1020, 12)
         ]);
 
 
@@ -161,46 +155,46 @@ class ReplaySubjectTest extends FunctionalTestCase
 
         $this->assertMessages([
 
-            onNext(301, 4),
-            onNext(302, -1),
-            onNext(303, -2),
-            onNext(341, 5),
-            onNext(411, 6),
-            onNext(521, 7)
+          onNext(301, 4),
+          onNext(302, -1),
+          onNext(303, -2),
+          onNext(341, 5),
+          onNext(411, 6),
+          onNext(521, 7)
         ],
-            $results1->getMessages());
+          $results1->getMessages());
 
         $this->assertMessages([
-            onNext(401, 5),
-            onNext(411, 6),
-            onNext(521, 7),
-            onNext(631, 8)
+          onNext(401, 5),
+          onNext(411, 6),
+          onNext(521, 7),
+          onNext(631, 8)
         ],
-            $results2->getMessages()
+          $results2->getMessages()
         );
 
         $this->assertMessages([
-            onNext(901, 10),
-            onNext(941, 11)
+          onNext(901, 10),
+          onNext(941, 11)
         ],
-            $results3->getMessages());
+          $results3->getMessages());
 
     }
 
     public function testFinite()
     {
         $xs = $this->createHotObservable([
-            onNext(70, 1),
-            onNext(110, 2),
-            onNext(220, 3),
-            onNext(270, 4),
-            onNext(340, 5),
-            onNext(410, 6),
-            onNext(520, 7),
-            onCompleted(630),
-            onNext(640, 9),
-            onCompleted(650),
-            onError(660, new \Exception())
+          onNext(70, 1),
+          onNext(110, 2),
+          onNext(220, 3),
+          onNext(270, 4),
+          onNext(340, 5),
+          onNext(410, 6),
+          onNext(520, 7),
+          onCompleted(630),
+          onNext(640, 9),
+          onCompleted(650),
+          onError(660, new \Exception())
         ]);
 
 
@@ -244,19 +238,19 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->scheduler->start();
 
         $this->assertMessages([
-            onNext(301, 3),
-            onNext(302, 4),
-            onNext(341, 5),
-            onNext(411, 6),
-            onNext(521, 7)
+          onNext(301, 3),
+          onNext(302, 4),
+          onNext(341, 5),
+          onNext(411, 6),
+          onNext(521, 7)
         ],
-            $results1->getMessages());
+          $results1->getMessages());
 
         $this->assertMessages([
-            onNext(401, 5),
-            onNext(411, 6),
-            onNext(521, 7),
-            onCompleted(631)
+          onNext(401, 5),
+          onNext(411, 6),
+          onNext(521, 7),
+          onCompleted(631)
         ], $results2->getMessages());
 
         $this->assertMessages([onCompleted(901)], $results3->getMessages());
@@ -268,17 +262,17 @@ class ReplaySubjectTest extends FunctionalTestCase
         $error = new \Exception();
 
         $xs = $this->createHotObservable([
-            onNext(70, 1),
-            onNext(110, 2),
-            onNext(220, 3),
-            onNext(270, 4),
-            onNext(340, 5),
-            onNext(410, 6),
-            onNext(520, 7),
-            onError(630, $error),
-            onNext(640, 9),
-            onCompleted(650),
-            onError(660, new \Exception())
+          onNext(70, 1),
+          onNext(110, 2),
+          onNext(220, 3),
+          onNext(270, 4),
+          onNext(340, 5),
+          onNext(410, 6),
+          onNext(520, 7),
+          onError(630, $error),
+          onNext(640, 9),
+          onCompleted(650),
+          onError(660, new \Exception())
         ]);
 
         $results1 = $this->scheduler->createObserver();
@@ -321,32 +315,32 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->scheduler->start();
 
         $this->assertMessages([
-            onNext(301, 3),
-            onNext(302, 4),
-            onNext(341, 5),
-            onNext(411, 6),
-            onNext(521, 7)
+          onNext(301, 3),
+          onNext(302, 4),
+          onNext(341, 5),
+          onNext(411, 6),
+          onNext(521, 7)
         ], $results1->getMessages());
 
         $this->assertMessages([
-            onNext(401, 5),
-            onNext(411, 6),
-            onNext(521, 7),
-            onError(631, $error)
+          onNext(401, 5),
+          onNext(411, 6),
+          onNext(521, 7),
+          onError(631, $error)
         ], $results2->getMessages());
 
         $this->assertMessages([
-            onError(901, $error)
+          onError(901, $error)
         ], $results3->getMessages());
     }
 
     public function testCanceled()
     {
         $xs = $this->createHotObservable([
-            onCompleted(630),
-            onNext(640, 9),
-            onCompleted(650),
-            onError(660, new \Exception())
+          onCompleted(630),
+          onNext(640, 9),
+          onCompleted(650),
+          onError(660, new \Exception())
         ]);
 
         $results1 = $this->scheduler->createObserver();
@@ -391,11 +385,11 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->assertMessages([], $results1->getMessages());
 
         $this->assertMessages([
-            onCompleted(631)
+          onCompleted(631)
         ], $results2->getMessages());
 
         $this->assertMessages([
-            onCompleted(901)
+          onCompleted(901)
         ], $results3->getMessages());
 
     }
@@ -470,26 +464,26 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->scheduler->start();
 
         $this->assertMessages([
-            onNext(201, 1),
-            onNext(251, 2),
-            onNext(351, 3),
-            onNext(451, 4)
+          onNext(201, 1),
+          onNext(251, 2),
+          onNext(351, 3),
+          onNext(451, 4)
         ], $results1->getMessages());
 
         $this->assertMessages([
-            onNext(301, 1),
-            onNext(302, 2),
-            onNext(351, 3),
-            onNext(451, 4),
-            onNext(551, 5)
+          onNext(301, 1),
+          onNext(302, 2),
+          onNext(351, 3),
+          onNext(451, 4),
+          onNext(551, 5)
         ], $results2->getMessages());
 
         $this->assertMessages([
-            onNext(401, 1),
-            onNext(402, 2),
-            onNext(403, 3),
-            onNext(451, 4),
-            onNext(551, 5)
+          onNext(401, 1),
+          onNext(402, 2),
+          onNext(403, 3),
+          onNext(451, 4),
+          onNext(551, 5)
         ], $results3->getMessages());
 
     }
@@ -497,14 +491,14 @@ class ReplaySubjectTest extends FunctionalTestCase
     public function testDiesOut()
     {
         $xs = $this->createHotObservable([
-            onNext(70, 1),
-            onNext(110, 2),
-            onNext(220, 3),
-            onNext(270, 4),
-            onNext(340, 5),
-            onNext(410, 6),
-            onNext(520, 7),
-            onCompleted(580)
+          onNext(70, 1),
+          onNext(110, 2),
+          onNext(220, 3),
+          onNext(270, 4),
+          onNext(340, 5),
+          onNext(410, 6),
+          onNext(520, 7),
+          onCompleted(580)
         ]);
 
 
@@ -536,29 +530,29 @@ class ReplaySubjectTest extends FunctionalTestCase
         $this->scheduler->start();
 
         $this->assertMessages([
-            onNext(301, 3),
-            onNext(302, 4),
-            onNext(341, 5),
-            onNext(411, 6),
-            onNext(521, 7),
-            onCompleted(581)
+          onNext(301, 3),
+          onNext(302, 4),
+          onNext(341, 5),
+          onNext(411, 6),
+          onNext(521, 7),
+          onCompleted(581)
         ], $results1->getMessages());
 
 
         $this->assertMessages([
-            onNext(401, 5),
-            onNext(411, 6),
-            onNext(521, 7),
-            onCompleted(581)
+          onNext(401, 5),
+          onNext(411, 6),
+          onNext(521, 7),
+          onCompleted(581)
         ], $results2->getMessages());
 
         $this->assertMessages([
-            onNext(601, 7),
-            onCompleted(602)
+          onNext(601, 7),
+          onCompleted(602)
         ], $results3->getMessages());
 
         $this->assertMessages([
-            onCompleted(901)
+          onCompleted(901)
         ], $results4->getMessages());
 
     }
