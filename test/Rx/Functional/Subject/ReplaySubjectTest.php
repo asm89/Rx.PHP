@@ -400,7 +400,7 @@ class ReplaySubjectTest extends FunctionalTestCase
 
     }
 
-    public function xtestDisposed()
+    public function testDisposed()
     {
         $results1 = $this->scheduler->createObserver();
         $results2 = $this->scheduler->createObserver();
@@ -447,20 +447,24 @@ class ReplaySubjectTest extends FunctionalTestCase
             $subject->onNext(5);
         });
         $this->scheduler->scheduleAbsoluteWithState(null, 650, function () use (&$subject) {
-            $subject->onNext(6);
-            throw new \Exception;
+            $this->assertException(function () use (&$subject) {
+                $subject->onNext(6);
+            });
         });
         $this->scheduler->scheduleAbsoluteWithState(null, 750, function () use (&$subject) {
-            $subject->onCompleted();
-            throw new \Exception;
+            $this->assertException(function () use (&$subject) {
+                $subject->onCompleted();
+            });
         });
         $this->scheduler->scheduleAbsoluteWithState(null, 850, function () use (&$subject) {
-            $subject->onError(new \Exception());
-            throw new \Exception;
+            $this->assertException(function () use (&$subject) {
+                $subject->onError(new \Exception());
+            });
         });
         $this->scheduler->scheduleAbsoluteWithState(null, 950, function () use (&$subject) {
-            $subject->subscribe();
-            throw new \Exception;
+            $this->assertException(function () use (&$subject) {
+                $subject->subscribe();
+            });
         });
 
         $this->scheduler->start();
@@ -487,6 +491,75 @@ class ReplaySubjectTest extends FunctionalTestCase
             onNext(451, 4),
             onNext(551, 5)
         ], $results3->getMessages());
+
+    }
+
+    public function testDiesOut()
+    {
+        $xs = $this->createHotObservable([
+            onNext(70, 1),
+            onNext(110, 2),
+            onNext(220, 3),
+            onNext(270, 4),
+            onNext(340, 5),
+            onNext(410, 6),
+            onNext(520, 7),
+            onCompleted(580)
+        ]);
+
+
+        $results1 = $this->scheduler->createObserver();
+        $results2 = $this->scheduler->createObserver();
+        $results3 = $this->scheduler->createObserver();
+        $results4 = $this->scheduler->createObserver();
+
+        $this->scheduler->scheduleAbsoluteWithState(null, 100, function () use (&$subject) {
+            $subject = new ReplaySubject(9007199254740991, 100, $this->scheduler);
+        });
+        $this->scheduler->scheduleAbsoluteWithState(null, 200, function () use ($xs, &$subject) {
+            $xs->subscribe($subject);
+        });
+
+        $this->scheduler->scheduleAbsoluteWithState(null, 300, function () use (&$subject, &$results1) {
+            $subject->subscribe($results1);
+        });
+        $this->scheduler->scheduleAbsoluteWithState(null, 400, function () use (&$subject, &$results2) {
+            $subject->subscribe($results2);
+        });
+        $this->scheduler->scheduleAbsoluteWithState(null, 600, function () use (&$subject, &$results3) {
+            $subject->subscribe($results3);
+        });
+        $this->scheduler->scheduleAbsoluteWithState(null, 900, function () use (&$subject, &$results4) {
+            $subject->subscribe($results4);
+        });
+
+        $this->scheduler->start();
+
+        $this->assertMessages([
+            onNext(301, 3),
+            onNext(302, 4),
+            onNext(341, 5),
+            onNext(411, 6),
+            onNext(521, 7),
+            onCompleted(581)
+        ], $results1->getMessages());
+
+
+        $this->assertMessages([
+            onNext(401, 5),
+            onNext(411, 6),
+            onNext(521, 7),
+            onCompleted(581)
+        ], $results2->getMessages());
+
+        $this->assertMessages([
+            onNext(601, 7),
+            onCompleted(602)
+        ], $results3->getMessages());
+
+        $this->assertMessages([
+            onCompleted(901)
+        ], $results4->getMessages());
 
     }
 }
