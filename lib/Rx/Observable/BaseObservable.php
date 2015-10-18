@@ -536,7 +536,24 @@ abstract class BaseObservable implements ObservableInterface
     public function doOnNext($onNext)
     {
         return $this->doOnEach(new CallbackObserver(
-            function($v) use ($onNext) { $onNext($v); }
+            $onNext
+        ));
+    }
+
+    public function doOnError($onError)
+    {
+        return $this->doOnEach(new CallbackObserver(
+            null,
+            $onError
+        ));
+    }
+
+    public function doOnCompleted($onCompleted)
+    {
+        return $this->doOnEach(new CallbackObserver(
+            null,
+            null,
+            $onCompleted
         ));
     }
 
