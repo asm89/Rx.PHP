@@ -187,6 +187,61 @@ class GroupByTest extends FunctionalTestCase
 
     /**
      * @test
+     * @expectedException \InvalidArgumentException
+     */
+    public function it_throws_if_keyselector_is_not_callable()
+    {
+        $xs = $this->createHotObservableWithData(true);
+
+        $xs
+          ->groupByUntil("non-callable", null, function () {
+              throw new Exception('');
+          })
+          ->select(function (GroupedObservable $observable) {
+              return $observable->getKey();
+        });
+
+    }
+
+
+    /**
+     * @test
+     * @expectedException \InvalidArgumentException
+     */
+    public function it_throws_if_durationselector_is_not_callable()
+    {
+        $xs = $this->createHotObservableWithData(true);
+
+        $xs
+          ->groupByUntil(function ($elem) {
+              return $elem;
+          }, null, "non-callable")
+          ->select(function (GroupedObservable $observable) {
+              return $observable->getKey();
+          });
+
+    }
+
+    /**
+     * @test
+     * @expectedException \InvalidArgumentException
+     */
+    public function it_throws_if_keyserializer_is_not_callable()
+    {
+        $xs = $this->createHotObservableWithData(true);
+
+        $xs
+          ->groupByUntil(function ($elem) {
+              return $elem;
+          }, null, null, "non-callable")
+          ->select(function (GroupedObservable $observable) {
+            return $observable->getKey();
+        });
+
+    }
+
+    /**
+     * @test
      */
     public function it_passes_on_error_if_duration_observable_calls_on_error()
     {
@@ -216,7 +271,7 @@ class GroupByTest extends FunctionalTestCase
      */
     public function it_calls_on_completed_on_inner_subscription_if_subscription_expires_otherwise_it_passes()
     {
-        $xs             = $this->createHotObservableWithData();
+        $xs = $this->createHotObservableWithData();
 
         $observable = $xs->groupByUntil(function($elem) {
                 return trim(strtolower($elem));

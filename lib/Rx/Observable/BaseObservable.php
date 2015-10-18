@@ -7,9 +7,25 @@ use InvalidArgumentException;
 use Rx\ObserverInterface;
 use Rx\ObservableInterface;
 use Rx\Observer\CallbackObserver;
+use Rx\Operator\AsObservableOperator;
+use Rx\Operator\ConcatOperator;
+use Rx\Operator\CountOperator;
+use Rx\Operator\DeferOperator;
+use Rx\Operator\DistinctUntilChangedOperator;
+use Rx\Operator\NeverOperator;
+use Rx\Operator\OperatorInterface;
+use Rx\Operator\ReduceOperator;
+use Rx\Operator\ScanOperator;
+use Rx\Operator\SkipLastOperator;
+use Rx\Operator\SkipUntilOperator;
+use Rx\Operator\TapOperator;
+use Rx\Operator\ThrowOperator;
+use Rx\Operator\ToArrayOperator;
 use Rx\Scheduler\ImmediateScheduler;
 use Rx\Disposable\CompositeDisposable;
 use Rx\Disposable\SingleAssignmentDisposable;
+use Rx\SchedulerInterface;
+use Rx\Subject\AsyncSubject;
 use Rx\Subject\Subject;
 use Rx\Disposable\RefCountDisposable;
 use Rx\Disposable\EmptyDisposable;
@@ -305,14 +321,24 @@ abstract class BaseObservable implements ObservableInterface
     {
         $currentObservable = $this;
 
+        if ( ! is_callable($keySelector)) {
+            throw new InvalidArgumentException('Key selector should be a callable.');
+        }
+
         if (null === $elementSelector) {
             $elementSelector = function($elem) { return $elem; };
         } else if ( ! is_callable($elementSelector)) {
             throw new InvalidArgumentException('Element selector should be a callable.');
         }
 
+        if (null === $durationSelector) {
+            $durationSelector = function($x) { return $x; };
+        } else if ( ! is_callable($durationSelector)) {
+            throw new InvalidArgumentException('Duration selector should be a callable.');
+        }
+
         if (null === $keySerializer) {
-            $keySerializer = function($elem) { return $elem; };
+            $keySerializer = function($x) { return $x; };
         } else if ( ! is_callable($keySerializer)) {
             throw new InvalidArgumentException('Key serializer should be a callable.');
         }
@@ -429,4 +455,169 @@ abstract class BaseObservable implements ObservableInterface
             return $refCountDisposable;
         });
     }
+
+    /**
+     * @param $value
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public static function just($value)
+    {
+        return static::fromArray([$value]);
+    }
+
+    /**
+     * Lifts a function to the current Observable and returns a new Observable that when subscribed to will pass
+     * the values of the current Observable through the Operator function.
+     *
+     * @param \Rx\Operator\OperatorInterface $operator
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public function lift(OperatorInterface $operator)
+    {
+        return new AnonymousObservable(function (ObserverInterface $observer, SchedulerInterface $schedule) use ($operator) {
+            return $operator($this, $observer, $schedule);
+        });
+    }
+
+    /**
+     * Applies an accumulator function over an observable sequence, returning the result of the aggregation as a single element in the result sequence. The specified seed value is used as the initial accumulator value.
+     *
+     * @param callable $accumulator - An accumulator function to be invoked on each element.
+     * @param mixed $seed [optional] - The initial accumulator value.
+     * @return \Rx\Observable\AnonymousObservable - An observable sequence containing a single element with the final accumulator value.
+     */
+    public function reduce($accumulator, $seed = null)
+    {
+        return $this->lift(new ReduceOperator($accumulator, $seed));
+    }
+
+    /**
+     * Returns an observable sequence that contains only distinct contiguous elements according to the keySelector and the comparer.
+     *
+     * @param null $keySelector
+     * @param null $comparer
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public function distinctUntilChanged($keySelector = null, $comparer = null)
+    {
+        return $this->lift(new DistinctUntilChangedOperator($keySelector, $comparer));
+    }
+
+    /**
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public static function never()
+    {
+        return (new EmptyObservable())->lift(new NeverOperator());
+    }
+
+    /**
+     * @param $error
+     * @param SchedulerInterface $scheduler
+     *
+     * @return AnonymousObservable
+     */
+    public static function throwError($error, $scheduler = null) {
+        return (new EmptyObservable())->lift(new ThrowOperator($error, $scheduler));
+    }
+
+    /**
+     *  Invokes an action for each element in the observable sequence and invokes an action upon graceful or exceptional termination of the observable sequence.
+     *  This method can be used for debugging, logging, etc. of query behavior by intercepting the message stream to run arbitrary actions for messages on the pipeline.
+     *
+     * @param $observerOrOnNext
+     * @param null $onError
+     * @param null $onCompleted
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public function tap($observerOrOnNext, $onError = null, $onCompleted = null)
+    {
+        return $this->lift(new TapOperator($observerOrOnNext, $onError, $onCompleted));
+    }
+
+    /**
+     *  Applies an accumulator function over an observable sequence and returns each intermediate result. The optional seed value is used as the initial accumulator value.
+     *  For aggregation behavior with no intermediate results, see Observable.aggregate.
+     *
+     * @param $accumulator
+     * @param null $seed
+     * @return AnonymousObservable
+     */
+    public function scan($accumulator, $seed = null)
+    {
+        return $this->lift(new ScanOperator($accumulator, $seed));
+    }
+
+    /**
+     *  Creates an array from an observable sequence.
+     * @return AnonymousObservable An observable sequence containing a single element with a list containing all the elements of the source sequence.
+     */
+    public function toArray()
+    {
+        return $this->lift(new ToArrayOperator());
+    }
+
+    /**
+     *  Bypasses a specified number of elements at the end of an observable sequence.
+     *  This operator accumulates a queue with a length enough to store the first `count` elements. As more elements are
+     *  received, elements are taken from the front of the queue and produced on the result sequence. This causes elements to be delayed.
+     *
+     * @param $count Number of elements to bypass at the end of the source sequence.
+     * @return AnonymousObservable An observable sequence containing the source sequence elements except for the bypassed ones at the end.
+     */
+    public function skipLast($count)
+    {
+        return $this->lift(new SkipLastOperator($count));
+    }
+
+    /**
+     * Returns the values from the source observable sequence only after the other observable sequence produces a value.
+     *
+     * @param mixed $other The observable sequence or Promise that triggers propagation of elements of the source sequence.
+     * @return AnonymousObservable An observable sequence containing the elements of the source sequence starting from the point the other sequence triggered propagation.
+     */
+    public function skipUntil($other)
+    {
+        return $this->lift(new SkipUntilOperator($other));
+    }
+
+    /**
+     *  Hides the identity of an observable sequence.
+     * @return AnonymousObservable An observable sequence that hides the identity of the source sequence.
+     */
+    public function asObservable()
+    {
+        return $this->lift(new AsObservableOperator());
+    }
+
+
+    /**
+     * Concatenates all the observable sequences.
+     * @param ObservableInterface $observable
+     * @return AnonymousObservable
+     */
+    public function concat(ObservableInterface $observable) {
+        return $this->lift(new ConcatOperator($observable));
+    }
+
+    /**
+     * Returns an observable sequence containing a value that represents how many elements in the specified observable sequence satisfy a condition if provided, else the count of items.
+     *
+     * @param callable $predicate
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public function count($predicate = null) {
+        return $this->lift(new CountOperator($predicate));
+    }
+
+    /**
+     * Returns an observable sequence that invokes the specified factory function whenever a new observer subscribes.
+     *
+     * @param $factory
+     * @return \Rx\Observable\AnonymousObservable
+     */
+    public static function defer($factory){
+        return (new EmptyObservable())->lift(new DeferOperator($factory));
+    }
+
 }

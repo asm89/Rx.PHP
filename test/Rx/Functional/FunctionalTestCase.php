@@ -12,6 +12,7 @@ use Rx\Testing\TestScheduler;
 
 abstract class FunctionalTestCase extends TestCase
 {
+    /** @var  TestScheduler */
     protected $scheduler;
 
     public function setup()
@@ -26,7 +27,7 @@ abstract class FunctionalTestCase extends TestCase
         }
 
         for ($i = 0, $count = count($expected); $i < $count; $i++) {
-            if (! $expected[$i]->equals($recorded[$i])) {
+            if (!$expected[$i]->equals($recorded[$i])) {
                 $this->fail($expected[$i] . ' does not equal ' . $recorded[$i]);
             }
         }
@@ -48,7 +49,7 @@ abstract class FunctionalTestCase extends TestCase
 
         list($actual) = $observable->getSubscriptions();
 
-        if ( ! $expected->equals($actual)) {
+        if (!$expected->equals($actual)) {
             $this->fail(sprintf("Expected subscription '%s' does not match actual subscription '%s'", $expected, $actual));
         }
 
@@ -62,13 +63,59 @@ abstract class FunctionalTestCase extends TestCase
         }
 
         for ($i = 0, $count = count($expected); $i < $count; $i++) {
-            if (! $expected[$i]->equals($recorded[$i])) {
+            if (!$expected[$i]->equals($recorded[$i])) {
                 $this->fail($expected[$i] . ' does not equal ' . $recorded[$i]);
             }
         }
 
         $this->assertTrue(true); // success
     }
+
+    /**
+     * This was taken from https://gist.github.com/VladaHejda/8826707
+     *
+     * @param callable $callback
+     * @param string $expectedException
+     * @param null $expectedCode
+     * @param null $expectedMessage
+     */
+    protected function assertException(callable $callback, $expectedException = 'Exception', $expectedCode = null, $expectedMessage = null)
+    {
+        $expectedException = ltrim((string) $expectedException, '\\');
+        if (!class_exists($expectedException) && !interface_exists($expectedException)) {
+            $this->fail(sprintf('An exception of type "%s" does not exist.', $expectedException));
+        }
+        try {
+            $callback();
+        } catch (\Exception $e) {
+            $class        = get_class($e);
+            $message      = $e->getMessage();
+            $code         = $e->getCode();
+            $errorMessage = 'Failed asserting the class of exception';
+            if ($message && $code) {
+                $errorMessage .= sprintf(' (message was %s, code was %d)', $message, $code);
+            } elseif ($code) {
+                $errorMessage .= sprintf(' (code was %d)', $code);
+            }
+            $errorMessage .= '.';
+            $this->assertInstanceOf($expectedException, $e, $errorMessage);
+            if ($expectedCode !== null) {
+                $this->assertEquals($expectedCode, $code, sprintf('Failed asserting code of thrown %s.', $class));
+            }
+            if ($expectedMessage !== null) {
+                $this->assertContains($expectedMessage, $message, sprintf('Failed asserting the message of thrown %s.', $class));
+            }
+
+            return;
+        }
+        $errorMessage = 'Failed asserting that exception';
+        if (strtolower($expectedException) !== 'exception') {
+            $errorMessage .= sprintf(' of type %s', $expectedException);
+        }
+        $errorMessage .= ' was thrown.';
+        $this->fail($errorMessage);
+    }
+
 
     protected function createColdObservable(array $events)
     {
