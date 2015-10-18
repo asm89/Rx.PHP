@@ -4,9 +4,6 @@ namespace Rx\Observable;
 
 use Exception;
 use InvalidArgumentException;
-use React\Promise\Deferred;
-use React\Promise\PromiseInterface;
-use React\Promise\PromisorInterface;
 use Rx\ObserverInterface;
 use Rx\ObservableInterface;
 use Rx\Observer\CallbackObserver;
@@ -457,59 +454,6 @@ abstract class BaseObservable implements ObservableInterface
 
             return $refCountDisposable;
         });
-    }
-
-    /**
-     * Converts an existing observable sequence to React Promise
-     *
-     * @param PromisorInterface|null $deferred
-     * @return \React\Promise\Promise
-     */
-    public function toPromise($deferred = null)
-    {
-
-        $d     = $deferred ?: new Deferred();
-        $value = null;
-
-        $this->subscribe(new CallbackObserver(
-          function ($v) use (&$value) {
-              $value = $v;
-          },
-          function ($error) use ($d) {
-              $d->reject($error);
-          },
-          function () use ($d, &$value) {
-              $d->resolve($value);
-          }
-
-        ));
-
-        return $d->promise();
-
-    }
-
-    /**
-     * Converts a Promise to an Observable sequence
-     *
-     * @param \React\Promise\PromiseInterface $promise
-     * @return \Rx\Observable\AnonymousObservable
-     */
-    public static function fromPromise(PromiseInterface $promise)
-    {
-        return static::defer(
-          function () use ($promise) {
-              $subject = new AsyncSubject();
-
-              $promise->then(
-                function ($value) use ($subject) {
-                    $subject->onNext($value);
-                    $subject->onCompleted();
-                },
-                [$subject, "onError"]
-              );
-
-              return $subject;
-          });
     }
 
     /**

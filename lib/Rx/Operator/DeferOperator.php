@@ -1,10 +1,7 @@
 <?php
 
-
 namespace Rx\Operator;
 
-
-use React\Promise\PromiseInterface;
 use Rx\Observable\BaseObservable;
 use Rx\ObservableInterface;
 use Rx\ObserverInterface;
@@ -35,10 +32,6 @@ class DeferOperator implements OperatorInterface
 
         try {
             $result = $factory();
-
-            if ($result instanceof PromiseInterface) {
-                $result = BaseObservable::fromPromise($result);
-            }
 
             return $result->subscribe($observer);
         } catch (\Exception $e) {
