@@ -12,13 +12,13 @@ use Rx\Operator\ConcatOperator;
 use Rx\Operator\CountOperator;
 use Rx\Operator\DeferOperator;
 use Rx\Operator\DistinctUntilChangedOperator;
+use Rx\Operator\DoOnEachOperator;
 use Rx\Operator\NeverOperator;
 use Rx\Operator\OperatorInterface;
 use Rx\Operator\ReduceOperator;
 use Rx\Operator\ScanOperator;
 use Rx\Operator\SkipLastOperator;
 use Rx\Operator\SkipUntilOperator;
-use Rx\Operator\TapOperator;
 use Rx\Operator\ToArrayOperator;
 use Rx\Scheduler\ImmediateScheduler;
 use Rx\Disposable\CompositeDisposable;
@@ -524,14 +524,13 @@ abstract class BaseObservable implements ObservableInterface
      *  Invokes an action for each element in the observable sequence and invokes an action upon graceful or exceptional termination of the observable sequence.
      *  This method can be used for debugging, logging, etc. of query behavior by intercepting the message stream to run arbitrary actions for messages on the pipeline.
      *
-     * @param $observerOrOnNext
-     * @param null $onError
-     * @param null $onCompleted
+     * @param ObserverInterface $observer
+     *
      * @return \Rx\Observable\AnonymousObservable
      */
-    public function tap($observerOrOnNext, $onError = null, $onCompleted = null)
+    public function doOnEach(ObserverInterface $observer)
     {
-        return $this->lift(new TapOperator($observerOrOnNext, $onError, $onCompleted));
+        return $this->lift(new DoOnEachOperator($observer));
     }
 
     /**
